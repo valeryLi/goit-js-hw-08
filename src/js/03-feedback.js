@@ -1,6 +1,5 @@
 // import throttle from 'lodash.throttle';
 const throttle = require('lodash.throttle');
-const feedbackFormData = {};
 const STORAGE_KEY = 'feedback-form-state';
 
 const refs = {
@@ -12,6 +11,8 @@ const refs = {
 refs.form.addEventListener('input', throttle(onTextareaInput, 500));
 refs.form.addEventListener('submit', onFormSubmit);
 
+const feedbackFormData = {};
+
 textareaMessage();
 
 function onFormSubmit(event) {
@@ -21,24 +22,31 @@ function onFormSubmit(event) {
     alert('You need fill up all required fields!');
   }
 
-  event.currentTarget.reset();
+  console.log(JSON.parse(localStorage.getItem(STORAGE_KEY)));
+  refs.form.reset();
   localStorage.removeItem(STORAGE_KEY);
-  console.log(feedbackFormData);
 }
 
 function onTextareaInput(event) {
+  const textareaDataBefore = JSON.parse(localStorage.getItem(STORAGE_KEY));
+
+  if (textareaDataBefore) {
+    textareaDataBefore[event.target.name] = event.target.value;
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(textareaDataBefore));
+    return;
+  }
+
   feedbackFormData[event.target.name] = event.target.value;
 
   localStorage.setItem(STORAGE_KEY, JSON.stringify(feedbackFormData));
 }
 
 function textareaMessage() {
-  const savedMessage = localStorage.getItem(STORAGE_KEY);
-  const parsedMessage = JSON.parse(savedMessage);
+  const savedMessage = JSON.parse(localStorage.getItem(STORAGE_KEY));
 
-  if (parsedMessage) {
-    refs.input.value = parsedMessage.email;
-    refs.textarea.value = parsedMessage.message;
+  if (savedMessage) {
+    refs.input.value = savedMessage[refs.input.name] || '';
+    refs.textarea.value = savedMessage[refs.textarea.name] || '';
   }
 }
 
